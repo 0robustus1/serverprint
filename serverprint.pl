@@ -42,8 +42,28 @@ sub check_size {
   }
 }
 
+sub perform_conversion {
+  $opts = shift;
+  $additional_opts = shift;
+  $debug = shift;
+  print "trying to convert...";
+  $to_ps_cmd = "pdftops -paper A4 ".$opts{f}." /tmp/".basename($opts{f}).".ps"."\n";
+  $to_pdf_cmd = "pstopdf /tmp/".basename($opts{f}).".ps -o /tmp/".basename($opts{f})."\n";
+  if ($debug) {
+    print "\n";
+    print $to_ps_cmd;
+    print $to_pdf_cmd;
+  } else {
+    system($to_ps_cmd);
+    system($to_pdf_cmd);
+  }
+  print "ok\n";
+  $command = SCP." /tmp/".basename($opts{f})." ".$opts{s}.": && ".SSH." ".$opts{s}." lpr ".$additional_opts." -r -P ".$opts{p}." ".basename($opts{f})." -#".$opts{n};
+  return $command;
+}
+
 # -o, -f, -p, -n, & -s take arguments. Values can be found in %opts
-getopts('o:f:p:s:n:c', \%opts);
+getopts('o:f:p:s:n:cd', \%opts);
 die help_text unless $opts{f};
 my $additional_opts = $opts{o} ? $opts{o} : "";
 my $command = SCP." ".$opts{f}." ".$opts{s}.": && ".SSH." ".$opts{s}." lpr ". $additional_opts ." -r -P ".$opts{p}." ".basename($opts{f})." -#".$opts{n};
@@ -64,14 +84,15 @@ if ($opts{c}) {
     print "file dimensions ok, printing...\n";
   } else {
     print "file dimension are not matching Din A4\n";
-    print "trying to convert...";
-    system("pdftops -paper A4 ".$opts{f}." /tmp/".basename($opts{f}).".ps"."\n");
-    system("pstopdf /tmp/".basename($opts{f}).".ps -o /tmp/".basename($opts{f})."\n");
-    print "ok\n";
-    $command = SCP." /tmp/".basename($opts{f})." ".$opts{s}.": && ".SSH." ".$opts{s}." lpr ".$additional_opts." -r -P ".$opts{p}." ".basename($opts{f})." -#".$opts{n};
+    $command = perform_conversion($opts, $additional_opts, $opts{d});
   }
 }
 
-system($command);
+if ($opts{d}) {
+  print $command, "\n";
+} else {
+  system($command);
+}
+
 die "unhappy result" if ($? >> 8) == -1;
 __END__
