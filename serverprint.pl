@@ -15,7 +15,7 @@ my %opts = (
 );
 
 sub help_text {
-  print "Usage: \n", 
+  print "Usage: \n",
   "serverprint -p Printer -s Server -f File -n NoOfCopies -c -o '-o sides=two-sided-long-edge'\n";
   exit 0;
 }
@@ -42,7 +42,8 @@ sub check_size {
   }
 }
 
-getopts('o:f:p:s:n:c', \%opts); # -o, -f, -p, & -s take arguments. Values can be found in %opts
+# -o, -f, -p, -n, & -s take arguments. Values can be found in %opts
+getopts('o:f:p:s:n:c', \%opts);
 die help_text unless $opts{f};
 my $additional_opts = $opts{o} ? $opts{o} : "";
 my $command = SCP." ".$opts{f}." ".$opts{s}.": && ".SSH." ".$opts{s}." lpr ". $additional_opts ." -r -P ".$opts{p}." ".basename($opts{f})." -#".$opts{n};
@@ -57,23 +58,20 @@ if ($opts{c}) {
       $height = sprintf("%.2f",$2/72);
     }
   }
-  #print "width:".$width.",height:".$height;
   my $portrait = (check_size($width,8.3) && check_size($height,11.7));
   my $landscape = (check_size($height,8.3) && check_size($width,11.7));
-  unless ($portrait || $landscape) {
+  if ($portrait || $landscape) {
+    print "file dimensions ok, printing...\n";
+  } else {
     print "file dimension are not matching Din A4\n";
     print "trying to convert...";
     system("pdftops -paper A4 ".$opts{f}." /tmp/".basename($opts{f}).".ps"."\n");
     system("pstopdf /tmp/".basename($opts{f}).".ps -o /tmp/".basename($opts{f})."\n");
     print "ok\n";
     $command = SCP." /tmp/".basename($opts{f})." ".$opts{s}.": && ".SSH." ".$opts{s}." lpr ".$additional_opts." -r -P ".$opts{p}." ".basename($opts{f})." -#".$opts{n};
-    # print $command, "\n";
-    system($command."\n");
-    exit 0;
   }
-  print "file dimensions ok, printing...\n"
 }
-# print $command, "\n";
+
 system($command);
 die "unhappy result" if ($? >> 8) == -1;
 __END__
