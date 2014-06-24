@@ -13,6 +13,7 @@ my %opts = (
   's' => "stuga",
   'n' => 1
 );
+my $additional_opts = "";
 
 sub help_text {
   print "Usage: \n",
@@ -43,8 +44,6 @@ sub check_size {
 }
 
 sub perform_conversion {
-  $opts = shift;
-  $additional_opts = shift;
   $debug = shift;
   print "trying to convert...";
   $filepath = "/tmp/".basename($opts{f});
@@ -63,8 +62,6 @@ sub perform_conversion {
 }
 
 sub build_copy_print_command {
-  $opts = shift;
-  $additional_opts = shift;
   $filepath = shift;
   $command = SCP." ".$filepath." ".$opts{s}.": && ".SSH." ".$opts{s}." lpr ".$additional_opts." -r -P ".$opts{p}." ".basename($filepath)." -#".$opts{n};
   return $command;
@@ -73,8 +70,11 @@ sub build_copy_print_command {
 # -o, -f, -p, -n, & -s take arguments. Values can be found in %opts
 getopts('o:f:p:s:n:cd', \%opts);
 die help_text unless $opts{f};
-my $additional_opts = $opts{o} ? $opts{o} : "";
-my $command = build_copy_print_command($opts, $additional_opts, $opts{f});
+if ($opts{o}) {
+  $additional_opts = " ".$opts{o};
+}
+
+my $command = build_copy_print_command($opts{f});
 if ($opts{c}) {
   open(PDF,"pdfinfo ".$opts{f}." |") || die "Failed: not able to complete dimensionscheck\n","try again without the -c switch...";
   my $width;
@@ -92,8 +92,8 @@ if ($opts{c}) {
     print "file dimensions ok, printing...\n";
   } else {
     print "file dimension are not matching Din A4\n";
-    my $filepath = perform_conversion($opts, $additional_opts, $opts{d});
-    $command = build_copy_print_command($opts, $additional_opts, $filepath);
+    my $filepath = perform_conversion($opts{d});
+    $command = build_copy_print_command($filepath);
   }
 }
 
