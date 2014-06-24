@@ -17,7 +17,11 @@ my $additional_opts = "";
 
 sub help_text {
   print "Usage: \n",
-  "serverprint -p Printer -s Server -f File -n NoOfCopies -c -o '-o sides=two-sided-long-edge'\n";
+  "serverprint -p Printer -s Server -f File -n NoOfCopies -c -o '-o sides=two-sided-long-edge'\n",
+  "  -p is the name of the printer as identified by cups/lpq (default: 'Stuga')\n",
+  "  -s should be a server-reference processable by ssh, preferably a config-host (default: 'stuga')\n",
+  "  -c asks for automatic file conversions if the printing is likely to trigger problems\n",
+  "  -o takes additional arguments, that should be passed to lpr, as a singular string argument\n";
   exit 0;
 }
 
