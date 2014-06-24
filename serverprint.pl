@@ -47,8 +47,9 @@ sub perform_conversion {
   $additional_opts = shift;
   $debug = shift;
   print "trying to convert...";
-  $to_ps_cmd = "pdftops -paper A4 ".$opts{f}." /tmp/".basename($opts{f}).".ps"."\n";
-  $to_pdf_cmd = "pstopdf /tmp/".basename($opts{f}).".ps -o /tmp/".basename($opts{f})."\n";
+  $filepath = "/tmp/".basename($opts{f});
+  $to_ps_cmd = "pdftops -paper A4 ".$opts{f}." ".$filepath.".ps"."\n";
+  $to_pdf_cmd = "pstopdf ".$filepath.".ps -o ".$filepath."\n";
   if ($debug) {
     print "\n";
     print $to_ps_cmd;
@@ -58,7 +59,14 @@ sub perform_conversion {
     system($to_pdf_cmd);
   }
   print "ok\n";
-  $command = SCP." /tmp/".basename($opts{f})." ".$opts{s}.": && ".SSH." ".$opts{s}." lpr ".$additional_opts." -r -P ".$opts{p}." ".basename($opts{f})." -#".$opts{n};
+  return $filepath;
+}
+
+sub build_copy_print_command {
+  $opts = shift;
+  $additional_opts = shift;
+  $filepath = shift;
+  $command = SCP." ".$filepath." ".$opts{s}.": && ".SSH." ".$opts{s}." lpr ".$additional_opts." -r -P ".$opts{p}." ".basename($filepath)." -#".$opts{n};
   return $command;
 }
 
@@ -66,7 +74,7 @@ sub perform_conversion {
 getopts('o:f:p:s:n:cd', \%opts);
 die help_text unless $opts{f};
 my $additional_opts = $opts{o} ? $opts{o} : "";
-my $command = SCP." ".$opts{f}." ".$opts{s}.": && ".SSH." ".$opts{s}." lpr ". $additional_opts ." -r -P ".$opts{p}." ".basename($opts{f})." -#".$opts{n};
+my $command = build_copy_print_command($opts, $additional_opts, $opts{f});
 if ($opts{c}) {
   open(PDF,"pdfinfo ".$opts{f}." |") || die "Failed: not able to complete dimensionscheck\n","try again without the -c switch...";
   my $width;
@@ -84,7 +92,8 @@ if ($opts{c}) {
     print "file dimensions ok, printing...\n";
   } else {
     print "file dimension are not matching Din A4\n";
-    $command = perform_conversion($opts, $additional_opts, $opts{d});
+    my $filepath = perform_conversion($opts, $additional_opts, $opts{d});
+    $command = build_copy_print_command($opts, $additional_opts, $filepath);
   }
 }
 
