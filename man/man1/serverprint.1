@@ -1,0 +1,21 @@
+.Dd October 23, 2014
+.Dt SERVERPRINT 1
+.Os
+.
+.Sh NAME
+.Nm serverprint
+.Nd printing with remote printers (utilizing ssh/scp)
+.
+.Sh SYNOPSIS
+.Nm
+. Op Fl p Ar printername
+. Op Fl s Ar servername
+. Op Fl n Ar number-of-copies
+. Op Fl c
+. Op Fl o Ar "lpr-options"
+. Fl f Pa file/to/be/printed.pdf
+.
+.Sh DESCRIPTION
+.Nm
+allows you print files to a remote printer over a ssh-connection
+.
