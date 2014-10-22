@@ -7,6 +7,7 @@ use File::Basename;
 
 use constant SCP => "/usr/bin/scp";
 use constant SSH => "/usr/bin/ssh";
+use constant CORRECT_PDF_VERSION => 1.4;
 
 my %opts = (
   'p' => "Stuga",
@@ -92,19 +93,32 @@ if ($opts{c}) {
         "try again without the -c switch...";
   my $width;
   my $height;
+  my $pdf_version;
+
   while ( <PDF> )
   {
     if ($_ =~ m/^Page size:\s*(\d+?\.?\d*?)\s*x\s*(\d+?\.?\d*?)\s*pts/){
       $width = sprintf("%.2f",$1/72);
       $height = sprintf("%.2f",$2/72);
+    } elsif ($_ =~ m/^PDF version:\s*(\d+\.?\d*)\s*$/){
+      $pdf_version = $1;
     }
   }
+
   my $portrait = (check_size($width,8.3) && check_size($height,11.7));
   my $landscape = (check_size($height,8.3) && check_size($width,11.7));
-  if ($portrait || $landscape) {
-    print "file dimensions ok, printing...\n";
+  my $perform_conversion = 0;
+
+  if (!($portrait || $landscape)) {
+    print "file dimensions are not matching Din A4\n";
+    $perform_conversion = 1;
+  } elsif ($pdf_version > CORRECT_PDF_VERSION) {
+    print "pdf version does not match the correct version\n";
+    $perform_conversion = 1;
   } else {
-    print "file dimension are not matching Din A4\n";
+    print "file dimensions ok, printing...\n";
+  }
+  if ($perform_conversion) {
     $filepath = perform_conversion($opts{d});
   }
 }
