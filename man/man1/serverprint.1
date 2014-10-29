@@ -1,0 +1,62 @@
+.Dd October 23, 2014
+.Dt SERVERPRINT 1
+.Os
+.
+.Sh NAME
+.Nm serverprint
+.Nd printing with remote printers (utilizing ssh/scp)
+.
+.Sh SYNOPSIS
+.Nm
+. Op Fl p Ar printername
+. Op Fl s Ar servername
+. Op Fl n Ar number-of-copies
+. Op Fl c
+. Op Fl o Qq lpr-options
+. Fl f Pa file/to/be/printed.pdf
+.
+.Sh DESCRIPTION
+.Nm
+allows you print files to a remote printer over a ssh-connection
+.
+.Sh OPTIONS
+.Bl -tag
+. It Fl f Pa file/to/be/printed.pdf
+.  No The path to the actual file that is supposed to be printed.
+.
+. It Fl c
+.  No Converts the given (PDF-)file if appropriate.
+.  No Appropriateness is determined by the PDF-version and the page size.
+.  No If the page size does not match Din A4 or
+.  No the PDF-version is not equal to Qq 1.4 Ns .
+.
+. It Fl s Ar servername
+.  No Uses the given server to make the ssh and scp connection.
+.  No Allows servernames from an ssh-config.
+.  No Defaults to Qq stuga Ns .
+.
+. It Fl p Ar printername
+.  No Use the given printer to print on the server.
+.  No Defaults to Qq Stuga Ns .
+.
+. It Fl n Ar number-of-copies
+.  No Number of copies to print.
+.  No Is equivalent to the lpr-option Qq -# Ns .
+.  No Defaults to Qq 1 Ns .
+.
+. It Fl o Qq lpr-options
+.  No A string of options to be passed to the lpr command.
+.  No This option needs to contain the complete switches and their options.
+.  No Also the quotes are mandatory (as there is only one argument).
+.El
+.
+.Sh AUTHOR
+.An Tim Reddehase Aq Mt robustus@rightsrestricted.com
+.
+.Sh SEE ALSO
+.Bl -item
+. It
+.  Lk https://github.com/0robustus1/serverprint "serverprint project page"
+. It
+.  Lk http://rightsrestricted.com homepage
+.El
