@@ -12,7 +12,8 @@ use constant CORRECT_PDF_VERSION => 1.4;
 my %opts = (
   'p' => "Stuga",
   's' => "stuga",
-  'n' => 1
+  'n' => 1,
+  'c' => 1,
 );
 my $additional_opts = "";
 
@@ -21,7 +22,9 @@ sub help_text {
   "serverprint -p Printer -s Server -f File -n NoOfCopies -c -o '-o sides=two-sided-long-edge'\n",
   "  -p is the name of the printer as identified by cups/lpq (default: 'Stuga')\n",
   "  -s should be a server-reference processable by ssh, preferably a config-host (default: 'stuga')\n",
-  "  -c asks for automatic file conversions if the printing is likely to trigger problems\n",
+  "  -c asks for automatic file conversions if the printing is likely to trigger problems(default: on)\n",
+  "    --convert equivalent to -c\n",
+  "    --no-convert disables convert-mode\n",
   "  -o takes additional arguments, that should be passed to lpr, as a singular string argument\n";
   exit 0;
 }
@@ -80,7 +83,7 @@ sub build_copy_print_command {
 }
 
 # -o, -f, -p, -n, & -s take arguments. Values can be found in %opts
-GetOptions(\%opts, 'o=s', 'f=s', 'p=s', 's=s', 'n=i', 'c', 'd');
+GetOptions(\%opts, 'o=s', 'f=s', 'p=s', 's=s', 'n=i', 'c|convert!', 'd');
 die help_text unless $opts{f};
 if ($opts{o}) {
   $additional_opts = " ".$opts{o};
