@@ -2,7 +2,7 @@
 
 #use strict;
 use warnings;
-use Getopt::Std;
+use Getopt::Long;
 use File::Basename;
 
 use constant SCP => "/usr/bin/scp";
@@ -80,7 +80,7 @@ sub build_copy_print_command {
 }
 
 # -o, -f, -p, -n, & -s take arguments. Values can be found in %opts
-getopts('o:f:p:s:n:cd', \%opts);
+GetOptions(\%opts, 'o=s', 'f=s', 'p=s', 's=s', 'n=i', 'c', 'd');
 die help_text unless $opts{f};
 if ($opts{o}) {
   $additional_opts = " ".$opts{o};
