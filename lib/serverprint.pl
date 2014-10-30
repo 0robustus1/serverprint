@@ -14,6 +14,8 @@ my %opts = (
   's' => "stuga",
   'n' => 1,
   'c' => 1,
+  'two_sided' => 1,
+  'no_side' => 0,
 );
 my $additional_opts = "";
 
@@ -25,6 +27,9 @@ sub help_text {
   "  -c asks for automatic file conversions if the printing is likely to trigger problems(default: on)\n",
   "    --convert equivalent to -c\n",
   "    --no-convert disables convert-mode\n",
+  "  --two-sided prints page in --two-sided-long-edge mode (default)\n",
+  "  --one-sided prints page in --one-sided (does not print on the back)\n",
+  "  --no-side do not pass side-information to lpr (use server-default)\n",
   "  -o takes additional arguments, that should be passed to lpr, as a singular string argument\n";
   exit 0;
 }
@@ -79,11 +84,22 @@ sub build_copy_print_command {
   $command .= SSH." ".$opts{s}." ";
   # inner ssh command: lpr
   $command .= "lpr ".$additional_opts." -r -P ".$opts{p}." '".quotemeta(basename($filepath))."' -#".$opts{n};
+  # lpr-options
+  if (!$opts{no_side}) {
+    if ($opts{two_sided}) {
+      $command .= " -o sides=two-sided-long-edge";
+    } else {
+      $command .= " -o sides=one-sided"
+    }
+  }
   return $command;
 }
 
 # -o, -f, -p, -n, & -s take arguments. Values can be found in %opts
-GetOptions(\%opts, 'o=s', 'f=s', 'p=s', 's=s', 'n=i', 'c|convert!', 'd');
+GetOptions(\%opts, 'o=s', 'f=s', 'p=s', 's=s', 'n=i', 'c|convert!', 'd',
+  'two-sided' => \$opts{two_sided},
+  'one-sided' => sub { $opts{two_sided} = 0 },
+  'no-side' => sub { $opts{no_side} = 1 });
 die help_text unless $opts{f};
 if ($opts{o}) {
   $additional_opts = " ".$opts{o};

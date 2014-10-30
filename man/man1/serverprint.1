@@ -48,6 +48,15 @@ allows you print files to a remote printer over a ssh-connection
 .  No Is equivalent to the lpr-option Qq -# Ns .
 .  No Defaults to Qq 1 Ns .
 .
+. It Fl Fl two-sided
+.  No Print on the front and the back page (default).
+.
+. It Fl Fl one-sided
+.  No Print only on the front of the page.
+.
+. It Fl Fl no-side
+.  No Send no page-side information to the print-server (use the CUPS default).
+.
 . It Fl o Qq lpr-options
 .  No A string of options to be passed to the lpr command.
 .  No This option needs to contain the complete switches and their options.
