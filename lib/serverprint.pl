@@ -27,6 +27,9 @@ sub help_text {
   "  -c asks for automatic file conversions if the printing is likely to trigger problems(default: on)\n",
   "    --convert equivalent to -c\n",
   "    --no-convert disables convert-mode\n",
+  "  --two-sided prints page in --two-sided-long-edge mode (default)\n",
+  "  --one-sided prints page in --one-sided (does not print on the back)\n",
+  "  --no-side do not pass side-information to lpr (use server-default)\n",
   "  -o takes additional arguments, that should be passed to lpr, as a singular string argument\n";
   exit 0;
 }
