@@ -24,11 +24,15 @@ allows you print files to a remote printer over a ssh-connection
 . It Fl f Pa file/to/be/printed.pdf
 .  No The path to the actual file that is supposed to be printed.
 .
-. It Fl c
+. It Fl c Ns , Fl Fl convert
+.  No is activated by default (so providing -c is basically a no-op).
 .  No Converts the given (PDF-)file if appropriate.
 .  No Appropriateness is determined by the PDF-version and the page size.
 .  No If the page size does not match Din A4 or
 .  No the PDF-version is not equal to Qq 1.4 Ns .
+.
+. It Fl Fl no-convert
+.  No Deactivate the convert mode. See more information above Pq Fl c Ns .
 .
 . It Fl s Ar servername
 .  No Uses the given server to make the ssh and scp connection.
