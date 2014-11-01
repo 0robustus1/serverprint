@@ -30,6 +30,7 @@ sub help_text {
   "  --two-sided prints page in --two-sided-long-edge mode (default)\n",
   "  --one-sided prints page in --one-sided (does not print on the back)\n",
   "  --no-side do not pass side-information to lpr (use server-default)\n",
+  "  --pages-per-print-page is the count of file pages per print page (default: 1)\n",
   "  -o takes additional arguments, that should be passed to lpr, as a singular string argument\n";
   exit 0;
 }
