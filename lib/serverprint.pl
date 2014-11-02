@@ -127,13 +127,14 @@ sub print_pages_handler {
 }
 
 # -o, -f, -p, -n, & -s take arguments. Values can be found in %opts
-GetOptions(\%opts, 'o=s', 'f=s', 'p=s', 's=s', 'n=i', 'c|convert!', 'd',
+GetOptions(\%opts, 'o=s', 'f=s', 'p=s', 's=s', 'n=i', 'c|convert!',
+  'd', 'h|help',
   'two-sided' => \$opts{two_sided},
   'one-sided' => sub { $opts{two_sided} = 0 },
   'no-side' => sub { $opts{no_side} = 1 },
   'pages-per-print-page=i' => \&print_pages_handler);
 
-die help_text unless $opts{f};
+die help_text if $opts{h} || !$opts{f};
 if ($opts{o}) {
   $additional_opts = " ".$opts{o};
 }
