@@ -16,6 +16,7 @@ my %opts = (
   'c' => 1,
   'two_sided' => 1,
   'no_side' => 0,
+  'pages_per_print_page' => 1,
 );
 my $additional_opts = "";
 
@@ -30,6 +31,7 @@ sub help_text {
   "  --two-sided prints page in --two-sided-long-edge mode (default)\n",
   "  --one-sided prints page in --one-sided (does not print on the back)\n",
   "  --no-side do not pass side-information to lpr (use server-default)\n",
+  "  --pages-per-print-page is the count of file pages per print page (default: 1)\n",
   "  -o takes additional arguments, that should be passed to lpr, as a singular string argument\n";
   exit 0;
 }
@@ -74,6 +76,34 @@ sub perform_conversion {
   return $filepath;
 }
 
+sub build_pages_per_print_page_option {
+  $pages_value = shift;
+  $option = "";
+  if ($pages_value != 1) {
+    if ($pages_value != 0 && ($pages_value % 2) == 0) {
+      $option = " -o number-up=".$pages_value;
+    } else {
+      die("invalid value '".$pages_value."' for --pages-per-print-page.".
+        " See manpage for details.\n");
+    }
+  }
+  return $option;
+}
+
+sub build_page_sides_option {
+  $no_side = shift;
+  $two_sided = shift;
+  $option = "";
+  if (!$no_side) {
+    if ($two_sided) {
+      $option = " -o sides=two-sided-long-edge";
+    } else {
+      $option = " -o sides=one-sided"
+    }
+  }
+  return $option;
+}
+
 sub build_copy_print_command {
   $filepath = shift;
   # scp portion
@@ -84,22 +114,25 @@ sub build_copy_print_command {
   $command .= SSH." ".$opts{s}." ";
   # inner ssh command: lpr
   $command .= "lpr ".$additional_opts." -r -P ".$opts{p}." '".quotemeta(basename($filepath))."' -#".$opts{n};
-  # lpr-options
-  if (!$opts{no_side}) {
-    if ($opts{two_sided}) {
-      $command .= " -o sides=two-sided-long-edge";
-    } else {
-      $command .= " -o sides=one-sided"
-    }
-  }
+  # lpr-options: print back/front of pages
+  $command .= build_page_sides_option($opts{no_side}, $opts{two_sided});
+  # lpr-options: print multiple file-pages per page
+  $command .= build_pages_per_print_page_option($opts{pages_per_print_page});
   return $command;
+}
+
+sub print_pages_handler {
+  my ($opt_name, $count) = @_;
+  $opts{pages_per_print_page} = $count;
 }
 
 # -o, -f, -p, -n, & -s take arguments. Values can be found in %opts
 GetOptions(\%opts, 'o=s', 'f=s', 'p=s', 's=s', 'n=i', 'c|convert!', 'd',
   'two-sided' => \$opts{two_sided},
   'one-sided' => sub { $opts{two_sided} = 0 },
-  'no-side' => sub { $opts{no_side} = 1 });
+  'no-side' => sub { $opts{no_side} = 1 },
+  'pages-per-print-page=i' => \&print_pages_handler);
+
 die help_text unless $opts{f};
 if ($opts{o}) {
   $additional_opts = " ".$opts{o};

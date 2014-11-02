@@ -57,6 +57,11 @@ allows you print files to a remote printer over a ssh-connection
 . It Fl Fl no-side
 .  No Send no page-side information to the print-server (use the CUPS default).
 .
+. It Fl Fl pages-per-print-page Ar number
+.  No The number of pages in the file that are to be printed on one actual page.
+.  No This number must either be divideable by 2 (i.e. 2, 4, 6, 8, ...)
+.  No or equal 1 (the default).
+.
 . It Fl o Qq lpr-options
 .  No A string of options to be passed to the lpr command.
 .  No This option needs to contain the complete switches and their options.
