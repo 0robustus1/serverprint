@@ -76,6 +76,11 @@ sub perform_conversion {
   return $filepath;
 }
 
+sub is_pdf {
+  $filename = shift;
+  return $filename =~ m/\.pdf$/;
+}
+
 sub build_pages_per_print_page_option {
   $pages_value = shift;
   $option = "";
@@ -126,6 +131,49 @@ sub print_pages_handler {
   $opts{pages_per_print_page} = $count;
 }
 
+sub try_conversion {
+  $filepath = shift;
+  if (is_pdf($filepath)) {
+    open(PDF,"pdfinfo ".quotemeta($filepath)." |") ||
+      die "Failed: not able to complete dimensionscheck\n",
+          "try again without the -c switch...";
+    my $width;
+    my $height;
+    my $pdf_version;
+
+    while ( <PDF> )
+    {
+      if ($_ =~ m/^Page size:\s*(\d+?\.?\d*?)\s*x\s*(\d+?\.?\d*?)\s*pts/){
+        $width = sprintf("%.2f",$1/72);
+        $height = sprintf("%.2f",$2/72);
+      } elsif ($_ =~ m/^PDF version:\s*(\d+\.?\d*)\s*$/){
+        $pdf_version = $1;
+      }
+    }
+
+    my $portrait = (check_size($width,8.3) && check_size($height,11.7));
+    my $landscape = (check_size($height,8.3) && check_size($width,11.7));
+    my $perform_conversion = 0;
+
+    if (!($portrait || $landscape)) {
+      print "file dimensions are not matching Din A4\n";
+      $perform_conversion = 1;
+    } elsif ($pdf_version > CORRECT_PDF_VERSION) {
+      print "pdf version does not match the correct version\n";
+      $perform_conversion = 1;
+    } else {
+      print "file dimensions ok, printing...\n";
+    }
+    if ($perform_conversion) {
+      $filepath = perform_conversion($opts{d});
+    }
+  } else {
+    print "file is not a pdf, won't convert.\n";
+    $filepath = $opts{f};
+  }
+  return $filepath;
+}
+
 # -o, -f, -p, -n, & -s take arguments. Values can be found in %opts
 GetOptions(\%opts, 'o=s', 'f=s', 'p=s', 's=s', 'n=i', 'c|convert!',
   'd', 'h|help',
@@ -140,41 +188,7 @@ if ($opts{o}) {
 }
 
 my $filepath = $opts{f};
-if ($opts{c}) {
-  open(PDF,"pdfinfo ".quotemeta($filepath)." |") ||
-    die "Failed: not able to complete dimensionscheck\n",
-        "try again without the -c switch...";
-  my $width;
-  my $height;
-  my $pdf_version;
-
-  while ( <PDF> )
-  {
-    if ($_ =~ m/^Page size:\s*(\d+?\.?\d*?)\s*x\s*(\d+?\.?\d*?)\s*pts/){
-      $width = sprintf("%.2f",$1/72);
-      $height = sprintf("%.2f",$2/72);
-    } elsif ($_ =~ m/^PDF version:\s*(\d+\.?\d*)\s*$/){
-      $pdf_version = $1;
-    }
-  }
-
-  my $portrait = (check_size($width,8.3) && check_size($height,11.7));
-  my $landscape = (check_size($height,8.3) && check_size($width,11.7));
-  my $perform_conversion = 0;
-
-  if (!($portrait || $landscape)) {
-    print "file dimensions are not matching Din A4\n";
-    $perform_conversion = 1;
-  } elsif ($pdf_version > CORRECT_PDF_VERSION) {
-    print "pdf version does not match the correct version\n";
-    $perform_conversion = 1;
-  } else {
-    print "file dimensions ok, printing...\n";
-  }
-  if ($perform_conversion) {
-    $filepath = perform_conversion($opts{d});
-  }
-}
+$filepath = try_conversion($opts{f}) if $opts{c};
 
 my $command = build_copy_print_command($filepath);
 
