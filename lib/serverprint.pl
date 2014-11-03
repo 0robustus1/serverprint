@@ -188,7 +188,11 @@ if ($opts{o}) {
 }
 
 my $filepath = $opts{f};
-$filepath = try_conversion($opts{f}) if $opts{c};
+if (-e $filepath) {
+  $filepath = try_conversion($opts{f}) if $opts{c};
+} else {
+  die "The file '".$filepath."' does not exist, aborting!";
+}
 
 my $command = build_copy_print_command($filepath);
 
