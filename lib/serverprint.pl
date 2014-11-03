@@ -2,7 +2,7 @@
 
 #use strict;
 use warnings;
-use Getopt::Long;
+use Getopt::Long qw(:config pass_through);
 use File::Basename;
 
 use constant SCP => "/usr/bin/scp";
@@ -22,7 +22,7 @@ my $additional_opts = "";
 
 sub help_text {
   print "Usage: \n",
-  "serverprint -p Printer -s Server -f File -n NoOfCopies -c -o '-o sides=two-sided-long-edge'\n",
+  "serverprint -p Printer -s Server -n NoOfCopies -c -o '-o sides=two-sided-long-edge' path/to/printeable-file.pdf\n",
   "  -p is the name of the printer as identified by cups/lpq (default: 'Stuga')\n",
   "  -s should be a server-reference processable by ssh, preferably a config-host (default: 'stuga')\n",
   "  -c asks for automatic file conversions if the printing is likely to trigger problems(default: on)\n",
@@ -60,9 +60,10 @@ sub check_size {
 
 sub perform_conversion {
   $debug = shift;
+  $original_filepath = shift;
   print "trying to convert...";
-  $filepath = "/tmp/".basename($opts{f});
-  $to_ps_cmd = "pdftops -paper A4 ".quotemeta($opts{f})." ".quotemeta($filepath).".ps"."\n";
+  $filepath = "/tmp/".basename($original_filepath);
+  $to_ps_cmd = "pdftops -paper A4 ".quotemeta($original_filepath)." ".quotemeta($filepath).".ps"."\n";
   $to_pdf_cmd = "pstopdf ".quotemeta($filepath).".ps -o ".quotemeta($filepath)."\n";
   if ($debug) {
     print "\n";
@@ -165,11 +166,10 @@ sub try_conversion {
       print "file dimensions ok, printing...\n";
     }
     if ($perform_conversion) {
-      $filepath = perform_conversion($opts{d});
+      $filepath = perform_conversion($opts{d}, $filepath);
     }
   } else {
     print "file is not a pdf, won't convert.\n";
-    $filepath = $opts{f};
   }
   return $filepath;
 }
@@ -181,22 +181,23 @@ sub die_hard {
   exit $exit_state;
 }
 
-# -o, -f, -p, -n, & -s take arguments. Values can be found in %opts
-GetOptions(\%opts, 'o=s', 'f=s', 'p=s', 's=s', 'n=i', 'c|convert!',
+# -o, -p, -n, & -s take arguments. Values can be found in %opts
+GetOptions(\%opts, 'o=s', 'p=s', 's=s', 'n=i', 'c|convert!',
   'd', 'h|help',
   'two-sided' => \$opts{two_sided},
   'one-sided' => sub { $opts{two_sided} = 0 },
   'no-side' => sub { $opts{no_side} = 1 },
   'pages-per-print-page=i' => \&print_pages_handler);
 
-die help_text if $opts{h} || !$opts{f};
+my $filepath = $ARGV[0];
+
+die help_text if $opts{h} || !$filepath;
 if ($opts{o}) {
   $additional_opts = " ".$opts{o};
 }
 
-my $filepath = $opts{f};
 if (-e $filepath) {
-  $filepath = try_conversion($opts{f}) if $opts{c};
+  $filepath = try_conversion($filepath) if $opts{c};
 } else {
   die_hard "The file '".$filepath."' does not exist, aborting!";
 }
