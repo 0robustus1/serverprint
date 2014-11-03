@@ -22,8 +22,7 @@ my $additional_opts = "";
 
 sub help_text {
   print "Usage: \n",
-  "serverprint -p Printer -s Server -f File -n NoOfCopies -c -o '-o sides=two-sided-long-edge'\n",
-  "  -f is the file to printed. The file can also be provided without the switch\n",
+  "serverprint -p Printer -s Server -n NoOfCopies -c -o '-o sides=two-sided-long-edge' path/to/printeable-file.pdf\n",
   "  -p is the name of the printer as identified by cups/lpq (default: 'Stuga')\n",
   "  -s should be a server-reference processable by ssh, preferably a config-host (default: 'stuga')\n",
   "  -c asks for automatic file conversions if the printing is likely to trigger problems(default: on)\n",
@@ -182,15 +181,15 @@ sub die_hard {
   exit $exit_state;
 }
 
-# -o, -f, -p, -n, & -s take arguments. Values can be found in %opts
-GetOptions(\%opts, 'o=s', 'f=s', 'p=s', 's=s', 'n=i', 'c|convert!',
+# -o, -p, -n, & -s take arguments. Values can be found in %opts
+GetOptions(\%opts, 'o=s', 'p=s', 's=s', 'n=i', 'c|convert!',
   'd', 'h|help',
   'two-sided' => \$opts{two_sided},
   'one-sided' => sub { $opts{two_sided} = 0 },
   'no-side' => sub { $opts{no_side} = 1 },
   'pages-per-print-page=i' => \&print_pages_handler);
 
-my $filepath = $opts{f} || $ARGV[0];
+my $filepath = $ARGV[0];
 
 die help_text if $opts{h} || !$filepath;
 if ($opts{o}) {
