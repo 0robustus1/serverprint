@@ -189,25 +189,27 @@ GetOptions(\%opts, 'o=s', 'p=s', 's=s', 'n=i', 'c|convert!',
   'no-side' => sub { $opts{no_side} = 1 },
   'pages-per-print-page=i' => \&print_pages_handler);
 
-my $filepath = $ARGV[0];
+die help_text if $opts{h} || @ARGV == 0;
 
-die help_text if $opts{h} || !$filepath;
-if ($opts{o}) {
-  $additional_opts = " ".$opts{o};
-}
+foreach(@ARGV) {
+  my $filepath = $_;
+  if ($opts{o}) {
+    $additional_opts = " ".$opts{o};
+  }
 
-if (-e $filepath) {
-  $filepath = try_conversion($filepath) if $opts{c};
-} else {
-  die_hard "The file '".$filepath."' does not exist, aborting!";
-}
+  if (-e $filepath) {
+    $filepath = try_conversion($filepath) if $opts{c};
+  } else {
+    die_hard "The file '".$filepath."' does not exist, aborting!";
+  }
 
-my $command = build_copy_print_command($filepath);
+  my $command = build_copy_print_command($filepath);
 
-if ($opts{d}) {
-  print $command, "\n";
-} else {
-  system($command);
+  if ($opts{d}) {
+    print $command, "\n";
+  } else {
+    system($command);
+  }
 }
 
 die "unhappy result" if ($? >> 8) == -1;
