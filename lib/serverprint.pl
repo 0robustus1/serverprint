@@ -126,21 +126,8 @@ sub print_pages_handler {
   $opts{pages_per_print_page} = $count;
 }
 
-# -o, -f, -p, -n, & -s take arguments. Values can be found in %opts
-GetOptions(\%opts, 'o=s', 'f=s', 'p=s', 's=s', 'n=i', 'c|convert!',
-  'd', 'h|help',
-  'two-sided' => \$opts{two_sided},
-  'one-sided' => sub { $opts{two_sided} = 0 },
-  'no-side' => sub { $opts{no_side} = 1 },
-  'pages-per-print-page=i' => \&print_pages_handler);
-
-die help_text if $opts{h} || !$opts{f};
-if ($opts{o}) {
-  $additional_opts = " ".$opts{o};
-}
-
-my $filepath = $opts{f};
-if ($opts{c}) {
+sub try_conversion {
+  $filepath = shift;
   open(PDF,"pdfinfo ".quotemeta($filepath)." |") ||
     die "Failed: not able to complete dimensionscheck\n",
         "try again without the -c switch...";
@@ -174,7 +161,24 @@ if ($opts{c}) {
   if ($perform_conversion) {
     $filepath = perform_conversion($opts{d});
   }
+  return $filepath;
 }
+
+# -o, -f, -p, -n, & -s take arguments. Values can be found in %opts
+GetOptions(\%opts, 'o=s', 'f=s', 'p=s', 's=s', 'n=i', 'c|convert!',
+  'd', 'h|help',
+  'two-sided' => \$opts{two_sided},
+  'one-sided' => sub { $opts{two_sided} = 0 },
+  'no-side' => sub { $opts{no_side} = 1 },
+  'pages-per-print-page=i' => \&print_pages_handler);
+
+die help_text if $opts{h} || !$opts{f};
+if ($opts{o}) {
+  $additional_opts = " ".$opts{o};
+}
+
+my $filepath = $opts{f};
+$filepath = try_conversion($opts{f}) if $opts{c};
 
 my $command = build_copy_print_command($filepath);
 
