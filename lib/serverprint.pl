@@ -156,6 +156,7 @@ sub try_conversion {
     my $landscape = (check_size($height,8.3) && check_size($width,11.7));
     my $perform_conversion = 0;
 
+    print $filepath.": ";
     if (!($portrait || $landscape)) {
       print "file dimensions are not matching Din A4\n";
       $perform_conversion = 1;
