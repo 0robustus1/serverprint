@@ -174,6 +174,13 @@ sub try_conversion {
   return $filepath;
 }
 
+sub die_hard {
+  $message = shift;
+  $exit_state = shift || 1;
+  print $message."\n";
+  exit $exit_state;
+}
+
 # -o, -f, -p, -n, & -s take arguments. Values can be found in %opts
 GetOptions(\%opts, 'o=s', 'f=s', 'p=s', 's=s', 'n=i', 'c|convert!',
   'd', 'h|help',
@@ -191,7 +198,7 @@ my $filepath = $opts{f};
 if (-e $filepath) {
   $filepath = try_conversion($opts{f}) if $opts{c};
 } else {
-  die "The file '".$filepath."' does not exist, aborting!";
+  die_hard "The file '".$filepath."' does not exist, aborting!";
 }
 
 my $command = build_copy_print_command($filepath);
