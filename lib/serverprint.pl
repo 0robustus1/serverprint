@@ -22,7 +22,7 @@ my $additional_opts = "";
 
 sub help_text {
   print "Usage: \n",
-  "serverprint -p Printer -s Server -n NoOfCopies -c -o '-o sides=two-sided-long-edge' path/to/printeable-file.pdf\n",
+  "serverprint -o '-o sides=two-sided-short-edge' path/to/printeable-file.pdf another-file.pdf\n",
   "  -p is the name of the printer as identified by cups/lpq (default: 'Stuga')\n",
   "  -s should be a server-reference processable by ssh, preferably a config-host (default: 'stuga')\n",
   "  -c asks for automatic file conversions if the printing is likely to trigger problems(default: on)\n",
@@ -156,6 +156,7 @@ sub try_conversion {
     my $landscape = (check_size($height,8.3) && check_size($width,11.7));
     my $perform_conversion = 0;
 
+    print $filepath.": ";
     if (!($portrait || $landscape)) {
       print "file dimensions are not matching Din A4\n";
       $perform_conversion = 1;
@@ -189,25 +190,27 @@ GetOptions(\%opts, 'o=s', 'p=s', 's=s', 'n=i', 'c|convert!',
   'no-side' => sub { $opts{no_side} = 1 },
   'pages-per-print-page=i' => \&print_pages_handler);
 
-my $filepath = $ARGV[0];
+die help_text if $opts{h} || @ARGV == 0;
 
-die help_text if $opts{h} || !$filepath;
-if ($opts{o}) {
-  $additional_opts = " ".$opts{o};
-}
+foreach(@ARGV) {
+  my $filepath = $_;
+  if ($opts{o}) {
+    $additional_opts = " ".$opts{o};
+  }
 
-if (-e $filepath) {
-  $filepath = try_conversion($filepath) if $opts{c};
-} else {
-  die_hard "The file '".$filepath."' does not exist, aborting!";
-}
+  if (-e $filepath) {
+    $filepath = try_conversion($filepath) if $opts{c};
+  } else {
+    die_hard "The file '".$filepath."' does not exist, aborting!";
+  }
 
-my $command = build_copy_print_command($filepath);
+  my $command = build_copy_print_command($filepath);
 
-if ($opts{d}) {
-  print $command, "\n";
-} else {
-  system($command);
+  if ($opts{d}) {
+    print $command, "\n";
+  } else {
+    system($command);
+  }
 }
 
 die "unhappy result" if ($? >> 8) == -1;
