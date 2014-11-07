@@ -34,4 +34,11 @@ cups-integration stuff.
   represent how many document-pages should be printed per
   printed-page. It should be divideable by two, or equal to one.
 
+## Dependencies
+
+  - **perl**
+  - For convert-support (activated by default)
+    - **ghostscript**: for the `ps2pdf` binary
+    - **poppler** or **xpdf**: for the `pstopdf` binary and the `pdfinfo` binary
+
 [1]: https://rightsrestricted.com
