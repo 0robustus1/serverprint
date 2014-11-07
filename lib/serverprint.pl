@@ -64,7 +64,7 @@ sub perform_conversion {
   print "trying to convert...";
   $filepath = "/tmp/".basename($original_filepath);
   $to_ps_cmd = "pdftops -paper A4 ".quotemeta($original_filepath)." ".quotemeta($filepath).".ps"."\n";
-  $to_pdf_cmd = "pstopdf ".quotemeta($filepath).".ps -o ".quotemeta($filepath)."\n";
+  $to_pdf_cmd = "ps2pdf ".quotemeta($filepath).".ps ".quotemeta($filepath)."\n";
   if ($debug) {
     print "\n";
     print $to_ps_cmd;
