@@ -60,6 +60,15 @@ allows you print files to a remote printer over a ssh-connection
 .  No This number must either be divideable by 2 (i.e. 2, 4, 6, 8, ...)
 .  No or equal 1 (the default).
 .
+. It Fl Fl page Ar number
+.  No The specific number of the page that should be printed.
+.
+. It Fl Fl start-on-page Ar number
+.  No Starts printing on page specified by number.
+.
+. It Fl Fl end-after-page Ar number
+.  No Ends printing after printing the page specified by number.
+.
 . It Fl o Qq lpr-options
 .  No A string of options to be passed to the lpr command.
 .  No This option needs to contain the complete switches and their options.

@@ -35,6 +35,9 @@ sub help_text {
   "  --one-sided prints page in --one-sided (does not print on the back)\n",
   "  --no-side do not pass side-information to lpr (use server-default)\n",
   "  --pages-per-print-page is the count of file pages per print page (default: 1)\n",
+  "  --page print a specific page only\n",
+  "  --start-on-page start printing on a specific page\n",
+  "  --end-after-page end printing after printing a specific page\n",
   "  -o takes additional arguments, that should be passed to lpr, as a singular string argument\n";
   exit 0;
 }
