@@ -17,6 +17,9 @@ my %opts = (
   'two_sided' => 1,
   'no_side' => 0,
   'pages_per_print_page' => 1,
+  'page' => 0,
+  'start_page' => 0,
+  'end_page' => 0
 );
 my $additional_opts = "";
 
@@ -32,6 +35,9 @@ sub help_text {
   "  --one-sided prints page in --one-sided (does not print on the back)\n",
   "  --no-side do not pass side-information to lpr (use server-default)\n",
   "  --pages-per-print-page is the count of file pages per print page (default: 1)\n",
+  "  --page print a specific page only\n",
+  "  --start-on-page start printing on a specific page\n",
+  "  --end-after-page end printing after printing a specific page\n",
   "  -o takes additional arguments, that should be passed to lpr, as a singular string argument\n";
   exit 0;
 }
@@ -110,6 +116,30 @@ sub build_page_sides_option {
   return $option;
 }
 
+sub build_page_option {
+  $page = shift;
+  $option = "";
+  if ($page) {
+    $option = " -o page-ranges=".$page."-".$page;
+  }
+  return $option;
+}
+
+sub build_page_range_option {
+  $page = shift;
+  $start_page = shift;
+  $end_page = shift;
+  $option = "";
+  if ($page) {
+    $option = build_page_option($page);
+  } elsif ($start_page || $end_page) {
+    $start_page = "" unless $start_page;
+    $end_page = "" unless $end_page;
+    $option = " -o page-ranges=".$start_page."-".$end_page;
+  }
+  return $option;
+}
+
 sub build_copy_print_command {
   $filepath = shift;
   # scp portion
@@ -124,6 +154,8 @@ sub build_copy_print_command {
   $command .= build_page_sides_option($opts{no_side}, $opts{two_sided});
   # lpr-options: print multiple file-pages per page
   $command .= build_pages_per_print_page_option($opts{pages_per_print_page});
+  # lpr-options: page-ranges related options
+  $command .= build_page_range_option($opts{page}, $opts{start_page}, $opts{end_page});
   return $command;
 }
 
@@ -188,6 +220,9 @@ GetOptions(\%opts, 'o=s', 'p=s', 's=s', 'n=i', 'c|convert!',
   'two-sided' => \$opts{two_sided},
   'one-sided' => sub { $opts{two_sided} = 0 },
   'no-side' => sub { $opts{no_side} = 1 },
+  'page=i' => \$opts{page},
+  'start-on-page=i' => \$opts{start_page},
+  'end-after-page=i' => \$opts{end_page},
   'pages-per-print-page=i' => \&print_pages_handler);
 
 die help_text if $opts{h} || @ARGV == 0;
