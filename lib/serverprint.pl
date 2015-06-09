@@ -3,11 +3,13 @@
 #use strict;
 use warnings;
 use Getopt::Long qw(:config pass_through);
+use Env qw(HOME);
 use File::Basename;
 
 use constant SCP => "/usr/bin/scp";
 use constant SSH => "/usr/bin/ssh";
 use constant CORRECT_PDF_VERSION => 1.4;
+use constant CONFIG_FILE_NAME => ".serverprintrc";
 
 my %opts = (
   'p' => "Stuga",
@@ -212,6 +214,23 @@ sub die_hard {
   $exit_state = shift || 1;
   print $message."\n";
   exit $exit_state;
+}
+
+sub config_file_path {
+  return "$HOME/" . CONFIG_FILE_NAME;
+}
+
+sub load_config_file_hash {
+  my %opts = ();
+  open(FH, '<:encoding(UTF-8)', config_file_path)
+    or return %opts;
+
+  while ( <FH> ) {
+    if ($_ =~ m/^\s*([^=\s]+)\s*=\s*(.+)\s*$/){
+      $opts{$1} = $2;
+    }
+  }
+  return %opts;
 }
 
 sub merge_hash {
