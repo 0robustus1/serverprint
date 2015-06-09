@@ -3,6 +3,37 @@
 Printing to a server via an ssh-connection without performing
 cups-integration stuff.
 
+## Installation
+
+The preferred way to install this, is via a package system. Currently only an
+AUR-package (for Arch Linux) and a Homebrew-Formula (for OS X) are provided.
+
+- AUR-package [serverprint](https://aur.archlinux.org/packages/serverprint)
+- Homebrew-Formula
+  [serverprint](colum://github.com/0robustus1/homebrew-rightsrestricted/blob/master/serverprint.rb)
+  - Best to use the tap: `brew tap 0robustus1/rightsrestricted`, and then to
+    install `brew install serverprint`
+
+If you are not using one of these distributions/operating systems, you can
+install it on your own.  Just download the current release, untar the tarball
+and change into the directory:
+
+- `cd serverprint-...`
+- `sudo make install` will install the necessary files into the `/usr` hierarchy.
+
+If you don't want to install into the `/usr` hierarchy, you can specify a
+`prefix` instead.  So for example: `make prefix=~/.local install` would install
+into the `~/.local` hierarchy.
+
+You however need to manually ensure that the dependencies are being met.
+
+### Dependencies
+
+  - **perl**
+  - For convert-support (activated by default)
+    - **ghostscript**: for the `ps2pdf` binary
+    - **poppler** or **xpdf**: for the `pstopdf` binary and the `pdfinfo` binary
+
 ## Usage
 
 - `serverprint file/to/print.pdf`
@@ -58,12 +89,5 @@ The following configuration-settings are supported:
   - Whether or not auto-convert should be tried on pdf-files. Needs a numeric argument, with `1` representing true/on and `0` representing false/off.
 - **number-of-copies**
   - Sets the default number of copies for every print-task.
-
-## Dependencies
-
-  - **perl**
-  - For convert-support (activated by default)
-    - **ghostscript**: for the `ps2pdf` binary
-    - **poppler** or **xpdf**: for the `pstopdf` binary and the `pdfinfo` binary
 
 [1]: https://rightsrestricted.com
