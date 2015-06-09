@@ -1,4 +1,4 @@
-# serverprint - sometimes you just need to it yourself
+# serverprint - sometimes you just need to do it yourself
 
 Printing to a server via an ssh-connection without performing
 cups-integration stuff.
