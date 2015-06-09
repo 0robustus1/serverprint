@@ -214,6 +214,27 @@ sub die_hard {
   exit $exit_state;
 }
 
+sub merge_hash {
+  my %hash_1 = %{shift()};
+  my %hash_2 = %{shift()};
+  my %resulting_hash = %hash_1;
+  foreach my $key ( keys %hash_2 ) {
+    $resulting_hash{$key} = $hash_2{$key};
+  }
+  return %resulting_hash;
+}
+
+sub rename_keys_in_hash {
+  my %mapping = %{shift()};
+  my %hash = %{shift()};
+  my %resulting_hash = ();
+  foreach my $key ( keys %hash ) {
+    my $mapped_key = $mapping{$key};
+    $resulting_hash{$mapped_key} = $hash{$key} if ( $mapped_key );
+  }
+  return %resulting_hash;
+}
+
 # -o, -p, -n, & -s take arguments. Values can be found in %opts
 GetOptions(\%opts, 'o=s', 'p=s', 's=s', 'n=i', 'c|convert!',
   'd', 'h|help',
