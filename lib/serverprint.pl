@@ -11,7 +11,7 @@ use constant SSH => "/usr/bin/ssh";
 use constant CORRECT_PDF_VERSION => 1.4;
 use constant CONFIG_FILE_NAME => ".serverprintrc";
 
-my %opts = (
+my %defaults = (
   'p' => "Stuga",
   's' => "stuga",
   'n' => 1,
@@ -263,14 +263,17 @@ sub rename_keys_in_hash {
 }
 
 sub build_configuration {
+  my %defaults = %{shift()};
   my %options = %{shift()};
   my %config_file_data = %{shift()};
   my %config_file_mapper = %{shift()};
   my %renamed_config_file_data = rename_keys_in_hash(\%config_file_mapper, \%config_file_data);
-  return merge_hash(\%options, \%renamed_config_file_data);
+  my %configuration = merge_hash(\%defaults, \%renamed_config_file_data);
+  return merge_hash(\%configuration, \%options);
 }
 
 # -o, -p, -n, & -s take arguments. Values can be found in %opts
+my %opts = ();
 GetOptions(\%opts, 'o=s', 'p=s', 's=s', 'n=i', 'c|convert!',
   'd', 'h|help',
   'two-sided' => \$opts{two_sided},
@@ -282,7 +285,7 @@ GetOptions(\%opts, 'o=s', 'p=s', 's=s', 'n=i', 'c|convert!',
   'pages-per-print-page=i' => \&print_pages_handler);
 
 my %config_file_hash = load_config_file_hash;
-%config = build_configuration(\%opts, \%config_file_hash, \%config_file_mapper);
+%config = build_configuration(\%defaults, \%opts, \%config_file_hash, \%config_file_mapper);
 
 die help_text if $config{h} || @ARGV == 0;
 
