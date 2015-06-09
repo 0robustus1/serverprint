@@ -34,6 +34,31 @@ cups-integration stuff.
   represent how many document-pages should be printed per
   printed-page. It should be divideable by two, or equal to one.
 
+## Configuration
+
+One can also configure some of the more general settings with a
+configuration file. This file should be located at `~/.serverprintrc`.
+
+The config-file consists of key-value pairs. Each pair represents a line
+inside of the config. Key and value are separated by the equals-sign `=`.
+Trailing and leading white-space is allowed.
+
+```
+server-name = foobar
+printer-name=Foobar
+```
+
+The following configuration-settings are supported:
+
+- **server-name**
+  - The name of the server to connect to. Should usually be the Host of an ssh-config. Corresponds to the `-s` switch.
+- **printer-name**
+  - No The name of the printer on the foreign host. Corresponds to the `-c` switch.
+- **auto-convert**
+  - Whether or not auto-convert should be tried on pdf-files. Needs a numeric argument, with `1` representing true/on and `0` representing false/off.
+- **number-of-copies**
+  - Sets the default number of copies for every print-task.
+
 ## Dependencies
 
   - **perl**
