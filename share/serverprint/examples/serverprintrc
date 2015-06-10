@@ -1,0 +1,4 @@
+server-name = stuga
+printer-name = Stuga
+number-of-copies = 1
+auto-convert = 1

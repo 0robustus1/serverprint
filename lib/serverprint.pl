@@ -3,13 +3,15 @@
 #use strict;
 use warnings;
 use Getopt::Long qw(:config pass_through);
+use Env qw(HOME);
 use File::Basename;
 
 use constant SCP => "/usr/bin/scp";
 use constant SSH => "/usr/bin/ssh";
 use constant CORRECT_PDF_VERSION => 1.4;
+use constant CONFIG_FILE_NAME => ".serverprintrc";
 
-my %opts = (
+my %defaults = (
   'p' => "Stuga",
   's' => "stuga",
   'n' => 1,
@@ -22,6 +24,14 @@ my %opts = (
   'end_page' => 0
 );
 my $additional_opts = "";
+
+my %config = ();
+my %config_file_mapper = (
+  'printer-name' => 'p',
+  'server-name' => 's',
+  'number-of-copies' => 'n',
+  'auto-convert' => 'c'
+);
 
 sub help_text {
   print "Usage: \n",
@@ -143,25 +153,25 @@ sub build_page_range_option {
 sub build_copy_print_command {
   $filepath = shift;
   # scp portion
-  $command = SCP." ".quotemeta($filepath)." ".$opts{s}.": ";
+  $command = SCP." ".quotemeta($filepath)." ".$config{s}.": ";
   # second command
   $command .= "&& ";
   # ssh portion
-  $command .= SSH." ".$opts{s}." ";
+  $command .= SSH." ".$config{s}." ";
   # inner ssh command: lpr
-  $command .= "lpr ".$additional_opts." -r -P ".$opts{p}." '".quotemeta(basename($filepath))."' -#".$opts{n};
+  $command .= "lpr ".$additional_opts." -r -P ".$config{p}." '".quotemeta(basename($filepath))."' -#".$config{n};
   # lpr-options: print back/front of pages
-  $command .= build_page_sides_option($opts{no_side}, $opts{two_sided});
+  $command .= build_page_sides_option($config{no_side}, $config{two_sided});
   # lpr-options: print multiple file-pages per page
-  $command .= build_pages_per_print_page_option($opts{pages_per_print_page});
+  $command .= build_pages_per_print_page_option($config{pages_per_print_page});
   # lpr-options: page-ranges related options
-  $command .= build_page_range_option($opts{page}, $opts{start_page}, $opts{end_page});
+  $command .= build_page_range_option($config{page}, $config{start_page}, $config{end_page});
   return $command;
 }
 
 sub print_pages_handler {
   my ($opt_name, $count) = @_;
-  $opts{pages_per_print_page} = $count;
+  $config{pages_per_print_page} = $count;
 }
 
 sub try_conversion {
@@ -199,7 +209,7 @@ sub try_conversion {
       print "file dimensions ok, printing...\n";
     }
     if ($perform_conversion) {
-      $filepath = perform_conversion($opts{d}, $filepath);
+      $filepath = perform_conversion($config{d}, $filepath);
     }
   } else {
     print "file is not a pdf, won't convert.\n";
@@ -214,7 +224,56 @@ sub die_hard {
   exit $exit_state;
 }
 
+sub config_file_path {
+  return "$HOME/" . CONFIG_FILE_NAME;
+}
+
+sub load_config_file_hash {
+  my %opts = ();
+  open(FH, '<:encoding(UTF-8)', config_file_path)
+    or return %opts;
+
+  while ( <FH> ) {
+    if ($_ =~ m/^\s*([^=\s]+)\s*=\s*(.+)\s*$/){
+      $opts{$1} = $2;
+    }
+  }
+  return %opts;
+}
+
+sub merge_hash {
+  my %hash_1 = %{shift()};
+  my %hash_2 = %{shift()};
+  my %resulting_hash = %hash_1;
+  foreach my $key ( keys %hash_2 ) {
+    $resulting_hash{$key} = $hash_2{$key};
+  }
+  return %resulting_hash;
+}
+
+sub rename_keys_in_hash {
+  my %mapping = %{shift()};
+  my %hash = %{shift()};
+  my %resulting_hash = ();
+  foreach my $key ( keys %hash ) {
+    my $mapped_key = $mapping{$key};
+    $resulting_hash{$mapped_key} = $hash{$key} if ( $mapped_key );
+  }
+  return %resulting_hash;
+}
+
+sub build_configuration {
+  my %defaults = %{shift()};
+  my %options = %{shift()};
+  my %config_file_data = %{shift()};
+  my %config_file_mapper = %{shift()};
+  my %renamed_config_file_data = rename_keys_in_hash(\%config_file_mapper, \%config_file_data);
+  my %configuration = merge_hash(\%defaults, \%renamed_config_file_data);
+  return merge_hash(\%configuration, \%options);
+}
+
 # -o, -p, -n, & -s take arguments. Values can be found in %opts
+my %opts = ();
 GetOptions(\%opts, 'o=s', 'p=s', 's=s', 'n=i', 'c|convert!',
   'd', 'h|help',
   'two-sided' => \$opts{two_sided},
@@ -225,23 +284,26 @@ GetOptions(\%opts, 'o=s', 'p=s', 's=s', 'n=i', 'c|convert!',
   'end-after-page=i' => \$opts{end_page},
   'pages-per-print-page=i' => \&print_pages_handler);
 
-die help_text if $opts{h} || @ARGV == 0;
+my %config_file_hash = load_config_file_hash;
+%config = build_configuration(\%defaults, \%opts, \%config_file_hash, \%config_file_mapper);
+
+die help_text if $config{h} || @ARGV == 0;
 
 foreach(@ARGV) {
   my $filepath = $_;
-  if ($opts{o}) {
-    $additional_opts = " ".$opts{o};
+  if ($config{o}) {
+    $additional_opts = " ".$config{o};
   }
 
   if (-e $filepath) {
-    $filepath = try_conversion($filepath) if $opts{c};
+    $filepath = try_conversion($filepath) if $config{c};
   } else {
     die_hard "The file '".$filepath."' does not exist, aborting!";
   }
 
   my $command = build_copy_print_command($filepath);
 
-  if ($opts{d}) {
+  if ($config{d}) {
     print $command, "\n";
   } else {
     system($command);

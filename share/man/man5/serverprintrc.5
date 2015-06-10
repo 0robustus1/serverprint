@@ -1,0 +1,66 @@
+.Dd June 09, 2015
+.Dt SERVERPRINTRC 5
+.Os
+.
+.Sh NAME
+.Nm serverprintrc
+.Nd configuration file for the serverprint tool
+.
+.Sh SYNOPSIS
+.
+. Pa ~/.serverprintrc
+.
+.Sh DESCRIPTION
+.Nm
+.Bd -filled
+There is an order to the madness. Serverprint fetches options/configurations
+according to specific ordering, with lower numbers having priority over
+higher ones:
+.Ed
+.Bl -enum
+. It
+.  No command-line options (switches)
+. It
+.  No configuration-file
+. It
+.  No internal defaults
+.El
+.Bd -filled
+As not every setting for serverprint is applicable for a place inside
+of the config file (e.g. page-numbers) only a few can be configured
+inside of the config-file. Those however will be listed here.
+.Ed
+.Bd -filled
+The configuration file itself consists of key-value pairs. Each pair is placed on one actual line inside of the file. Keys and values are separated by the equals-sign (=).
+.Ed
+.
+.Bl -tag -width Ds
+. It Sy server-name
+.  No The name of the server to connect to. Should usually be the Host of an ssh-config. Corresponds to the Fl s No switch.
+. It Sy printer-name
+.  No The name of the printer on the foreign host. Corresponds to the Fl p No switch.
+. It Sy auto-convert
+.  No Whether or not auto-convert should be tried on pdf-files. Needs a numeric argument, with Em 1 No representing true/on and Em 0 No representing false/off.
+. It Sy number-of-copies
+.  No Sets the default number of copies for every print-task.
+.El
+.
+.Sh FILES
+.Bl -tag -width Ds
+. It Pa ~/.serverprintrc
+The per-user configuration file.
+. It Pa /usr/share/serverprint/examples/
+Contains an example configuration for the serverprintrc file.
+.
+.Sh AUTHOR
+.An Tim Reddehase Aq Mt robustus@rightsrestricted.com
+.
+.Sh SEE ALSO
+.Bl -item
+. It
+.  Xr serverprint 1
+. It
+.  Lk https://github.com/0robustus1/serverprint "serverprint project page"
+. It
+.  Lk http://rightsrestricted.com homepage
+.El
